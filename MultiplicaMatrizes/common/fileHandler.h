@@ -16,6 +16,18 @@
 int LerMetadadosMatriz(char* nomeArquivo, int* bufferMetadados);
 
 /*
+	LerMatrizes: Ler as matrizes A e B
+	Parâmetros:
+		nomeArquivo = Nome do arquivo
+		matrizA = ponteiro para armezenar a matrizA lida
+		matrizB = ponteiro para armazenar a matrizB lida
+	Retorno:
+		1 = sucesso
+		0 = erro
+*/
+int LerMatrizes(char* nomeArquivo, int*matrizA, int* matrizB);
+
+/*
 	ImprimeMatriz: Imprime uma matriz em arquivo
 	Parâmetros:
 		nomeArquivo = String com o caminho para o arquivo
