@@ -22,8 +22,8 @@ int criaProcessos(int qtdProcessos, int* matrizA, int* matrizB, int* metadados)
 		{
 			//Computa linha
 			computaLinha(matrizA, matrizB, metadados, bufferLinha, linha);
-			//espera pelo pid criado, caso linha seja > 0
-			if(linha > 0)
+			//espera pelo pid criado, caso exista um pid criado
+			if(pid != 0)
 				waitpid(pid,0,0);
 			//imprime
 			ImprimeMatriz(nomeArquivoOut, bufferLinha, 1,*(metadados));
