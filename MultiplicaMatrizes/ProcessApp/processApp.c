@@ -6,7 +6,7 @@
 #include "../common/matrizHandler.h"
 
 int main()
-{
+{/*
 	int metadados[2][2];
 	char nomeArquivo[] = "nomeArquivo";
 	if(LerMetadadosMatriz(&nomeArquivo,&metadados))
@@ -26,5 +26,6 @@ int main()
 	{
 		printf("Erro ao tentar ler os metadados");
 	}
+*/
 	return 0;
 }

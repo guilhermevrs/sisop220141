@@ -25,7 +25,7 @@ int LerMetadadosMatriz(char* nomeArquivo, int* bufferMetadados);
 		1 = sucesso
 		0 = erro
 */
-int LerMatrizes(char* nomeArquivo, int*matrizA, int* matrizB);
+int LerMatrizes(char* nomeArquivo, int linhas, int colunas, int matriz[linhas][colunas]);
 
 /*
 	ImprimeMatriz: Imprime uma matriz em arquivo
