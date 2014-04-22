@@ -46,13 +46,15 @@ int LerMatrizes(char* nomeArquivo, int linhas, int colunas, int matriz[linhas][c
     	return(0);
    	}
 
+   	//Incrementa o ponteiro do arquivo em 2 linhas
    	fgets(&c,20,fp);
    	fgets(&c,20,fp);
 
+   	printf("Matriz de %s:\n", nomeArquivo);
+   	
    	while(i <= linhas){
    		while(j <= colunas){
    			fscanf(fp,"%d",&matriz[i][j]);
-   		   	fflush(stdin);
    		   	printf("%d ", matriz[i][j]);
    			j++;
    		}
