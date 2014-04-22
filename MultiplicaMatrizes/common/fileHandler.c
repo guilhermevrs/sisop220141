@@ -36,8 +36,7 @@ int LerMetadadosMatriz(char* nomeArquivo, int* bufferMetadados){
 
 int LerMatrizes(char* nomeArquivo, int linhas, int colunas, int matriz[linhas][colunas]){
 	FILE *fp;
-	int i=0;
-	int j=0;
+	int i,j;
 	char c[20];
 
 	fp = fopen(nomeArquivo,"r");
@@ -50,23 +49,39 @@ int LerMatrizes(char* nomeArquivo, int linhas, int colunas, int matriz[linhas][c
    	fgets(&c,20,fp);
    	fgets(&c,20,fp);
 
-   	printf("Matriz de %s:\n", nomeArquivo);
-   	
-   	while(i <= linhas){
-   		while(j <= colunas){
+   	for(i=0;i<=linhas;i++)
+   		for(j=0;j<=colunas;j++)
    			fscanf(fp,"%d",&matriz[i][j]);
-   		   	printf("%d ", matriz[i][j]);
-   			j++;
-   		}
-   		printf("\n");
-   		i++;
-   		j=0;
-   	}
-	
+
 	fclose(fp);
 
    	return 1;
 }
 
-int ImprimeMatriz(char * nomeArquivo, int* matriz, int nLinhas, int nColunas);
+int ImprimeMatriz(char * nomeArquivo, int nLinhas, int nColunas, int matriz[nLinhas][nColunas]){
+	FILE *fp;
+	int i,j;
+
+	fp = fopen(nomeArquivo,"w");
+	if(fp == NULL) {
+    	perror("Error opening file");
+    	return(0);
+   	}
+   	printf("%d %d", nLinhas,nColunas);
+	
+   	fprintf(fp, "LINHAS = %d\nCOLUNAS = %d\n", nLinhas, nColunas);
+	
+	for(i=0;i<=nLinhas;i++){
+   		for(j=0;j<=nColunas;j++){
+ 	   		if(j!=0)
+ 	   			fprintf(fp," ");		
+ 	   		fprintf(fp,"%d", matriz[i][j]);
+   		}
+		fprintf(fp,"\n");
+ 	}
+	
+ 	fclose(fp);   	
+}
+	
+
 
