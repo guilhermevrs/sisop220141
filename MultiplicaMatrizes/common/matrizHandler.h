@@ -16,6 +16,6 @@
 		1 = Operação feita com sucesso
 		0 = Operação com erro
 */
-int computaLinha(int* matrizA, int* matrizB, int* metadados, int* bufferLinha, int nLinha);
-
+int computaLinha(int* metadadosA, int* metadadosB,int matrizA[metadadosA[0]][metadadosA[1]], int matrizB[metadadosB[0]][metadadosB[1]], int* bufferLinha, int nLinha);
+void inicializaMatriz(int linhas,int colunas, int matriz[linhas][colunas]);
 #endif
