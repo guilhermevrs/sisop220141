@@ -7,7 +7,7 @@ int computaLinha(int* metadadosA, int* metadadosB,int matrizA[metadadosA[0]][met
 	//int linhasB = metadadosB[0];
 	int colunasB = metadadosB[1];
 
-/*
+
 	int i,j;
 
 	for(j=0;j<=colunasB;j++){
@@ -15,9 +15,9 @@ int computaLinha(int* metadadosA, int* metadadosB,int matrizA[metadadosA[0]][met
 		{
 			bufferLinha[j] = bufferLinha[j] + (matrizA[nLinha][i] * matrizB[i][j]);
 		}
-		printf("%d \n", bufferLinha[j]);
+		printf("%d ", bufferLinha[j]); //print da linha da matriz resultante calculada
 	}
-*/
+
 }
 
 void inicializaMatriz(int linhas,int colunas, int matriz[linhas][colunas]){

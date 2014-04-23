@@ -38,6 +38,6 @@ int LerMatrizes(char* nomeArquivo, int linhas, int colunas, int matriz[linhas][c
 		1 = operação com sucesso
 		0 = operação com erros
 */
-int ImprimeMatriz(char * nomeArquivo, int nLinhas, int nColunas, int matriz[nLinhas][nColunas]);
+int ImprimeMatriz(char* nomeArquivo, int nLinhas, int nColunas, int matriz[nLinhas][nColunas]);
 
 #endif

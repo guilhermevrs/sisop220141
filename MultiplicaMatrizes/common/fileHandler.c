@@ -58,7 +58,7 @@ int LerMatrizes(char* nomeArquivo, int linhas, int colunas, int matriz[linhas][c
    	return 1;
 }
 
-int ImprimeMatriz(char * nomeArquivo, int nLinhas, int nColunas, int matriz[nLinhas][nColunas]){
+int ImprimeMatriz(char* nomeArquivo, int nLinhas, int nColunas, int matriz[nLinhas][nColunas]){
 	FILE *fp;
 	int i,j;
 
@@ -67,7 +67,6 @@ int ImprimeMatriz(char * nomeArquivo, int nLinhas, int nColunas, int matriz[nLin
     	perror("Error opening file");
     	return(0);
    	}
-   	printf("%d %d", nLinhas,nColunas);
 	
    	fprintf(fp, "LINHAS = %d\nCOLUNAS = %d\n", nLinhas, nColunas);
 	
