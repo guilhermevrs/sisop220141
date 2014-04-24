@@ -18,7 +18,18 @@ int InicializaFila(char *filosofos);
 		1 = Operação com sucesso
 		0 = Operação com erros
 */
-int ImprimeEstados(char *filosofos);
+int ImprimeEstados(char *filosofo);
+
+/*
+	TrocaEstado: Troca o estado de um filósofo
+	Parâmetros:
+		filosofo = um filósofo
+		novoEstado = estado pode ser "E" (para eating), "T" (para thinking) e "H" (para hungry)
+	Retorno:
+		1 = Operação com sucesso
+		0 = Operação com erros
+*/
+int TrocaEstado(char *filosofos, char novoEstado);
 
 
 #endif

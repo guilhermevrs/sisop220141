@@ -3,5 +3,6 @@
 #include "../common/tableHandler.c"
 
 int main(){
-	
+
+	return 0;
 }
