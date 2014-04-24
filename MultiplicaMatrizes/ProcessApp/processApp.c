@@ -10,6 +10,7 @@
 
 int criaProcessos(int qtdProcessos, int* matrizA, int* matrizB, int* metadados)
 {
+	/*
 	int linha;
 	int bufferLinha[*(metadados)];
 	char *nomeArquivoOut = "out.txt";
@@ -31,6 +32,7 @@ int criaProcessos(int qtdProcessos, int* matrizA, int* matrizB, int* metadados)
 		}
 	}
 	exit(1);
+	*/
 }
 
 int main()

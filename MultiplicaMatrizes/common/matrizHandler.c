@@ -3,7 +3,7 @@
 
 int computaLinha(int* metadadosA, int* metadadosB,int matrizA[metadadosA[0]][metadadosA[1]], int matrizB[metadadosB[0]][metadadosB[1]], int* bufferLinha, int nLinha){
 	//int linhasA = metadadosA[0];
-	int colunasA = metadadosA[1];
+	int colunasA = metadadosA[0];
 	//int linhasB = metadadosB[0];
 	int colunasB = metadadosB[1];
 

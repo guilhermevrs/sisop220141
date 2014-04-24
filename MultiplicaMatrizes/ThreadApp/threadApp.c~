@@ -9,8 +9,9 @@
 
 int main()
 {
-	int metadadosA[2],metadadosB[2];
-	char nomeArquivoMatrizA[] = "in1";
+	//int metadadosA[1];
+	int metadadosB[1];
+	//char nomeArquivoMatrizA[] = "in1";
 	char nomeArquivoMatrizB[] = "in2";
 	char nomeArquivoSaida[] = "out";
 	int threadLinha = 0; //supõe que uma thread fica responsável pela linha 0 da matriz resultante
@@ -23,7 +24,7 @@ int main()
 	int matrizB[metadadosB[0]][metadadosB[1]];
 	int matrizResultante[metadadosA[0]][metadadosB[1]];
 
-	LerMatrizes(&nomeArquivoMatrizA,metadadosA[0],metadadosA[1],matrizA);
+	LerMatrizes(&nomeArquivoMatrizA,metadadosA[0],metadadosA[1],matrizA);	
 	LerMatrizes(&nomeArquivoMatrizB,metadadosB[0],metadadosB[1],matrizB);
 	
 	inicializaMatriz(metadadosA[0],metadadosB[1],matrizResultante); //seta todos os elementos da matriz em 0

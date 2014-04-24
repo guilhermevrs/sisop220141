@@ -1,6 +1,7 @@
 #Makefile
 
 main: ProcessApp ThreadApp
+	echo "Maschkii"	
 
 ProcessApp: fileHandler.o matrizHandler.o ProcessApp/processApp.c
 	gcc -o bin/ProcessApp -c ProcessApp/processApp.c common/fileHandler.o common/matrizHandler.o 

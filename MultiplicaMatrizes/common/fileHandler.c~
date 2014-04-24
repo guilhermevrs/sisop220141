@@ -26,8 +26,8 @@ int LerMetadadosMatriz(char* nomeArquivo, int* bufferMetadados){
 		return 0;
 	}
 
-	bufferMetadados[0] = numLin;
-	bufferMetadados[1] = numCol;
+	bufferMetadados[0] = numLin-1;
+	bufferMetadados[1] = numCol-1;
 
 	fclose(fp);
 
@@ -49,10 +49,14 @@ int LerMatrizes(char* nomeArquivo, int linhas, int colunas, int matriz[linhas][c
    	fgets(&c,20,fp);
    	fgets(&c,20,fp);
 
-   	for(i=0;i<linhas;i++)
-   		for(j=0;j<colunas;j++)
-   			fscanf(fp,"%d",&matriz[i][j]);
-
+   	for(i=0;i<=linhas;i++){
+   		for(j=0;j<=colunas;j++){
+   			fscanf(fp," %d",&matriz[i][j]);		
+			printf("%d ", matriz[i][j]);		
+		}
+		printf("\n");	
+	}
+	
 	fclose(fp);
 
    	return 1;
@@ -70,8 +74,8 @@ int ImprimeMatriz(char* nomeArquivo, int nLinhas, int nColunas, int matriz[nLinh
 	
    	fprintf(fp, "LINHAS = %d\nCOLUNAS = %d\n", nLinhas, nColunas);
 	
-	for(i=0;i<nLinhas;i++){
-   		for(j=0;j<nColunas;j++){
+	for(i=0;i<=nLinhas;i++){
+   		for(j=0;j<=nColunas;j++){
  	   		if(j!=0)
  	   			fprintf(fp," ");		
  	   		fprintf(fp,"%d", matriz[i][j]);
