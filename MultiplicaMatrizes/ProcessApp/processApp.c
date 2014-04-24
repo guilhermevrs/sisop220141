@@ -34,7 +34,7 @@ int criaProcessos(int qtdProcessos, int* matrizA, int* matrizB, int* metadados)
 }
 
 int main()
-{
+{/*
 	int metadados[2][2];
 	int qtdProcessos = 0;
 	char nomeArquivo[] = "nomeArquivo";
@@ -54,11 +54,12 @@ int main()
 		else
 		{
 			printf("Erro ao tentar ler matrizes");
-		}	
+		}
 	}
 	else
 	{
 		printf("Erro ao tentar ler os metadados");
 	}
+*/
 	return 0;
 }

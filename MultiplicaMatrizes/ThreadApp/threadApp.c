@@ -3,28 +3,32 @@
 */
 #include <stdio.h>
 #include "../common/fileHandler.h"
+#include "../common/fileHandler.c"
 #include "../common/matrizHandler.h"
+#include "../common/matrizHandler.c"
 
 int main()
 {
-	int metadados[2][2];
-	char nomeArquivo[] = "nomeArquivo";
-	if(LerMetadadosMatriz(&nomeArquivo,&metadados))
-	{
-		int matrizA[metadados[0][0]][metadados[0][1]];
-		int matrizB[metadados[1][0]][metadados[1][1]];
-		if(LerMatrizes(&nomeArquivo, &matrizA, &matrizB))
-		{
+	int metadadosA[1],metadadosB[1];
+	char nomeArquivoMatrizA[] = "in1";
+	char nomeArquivoMatrizB[] = "in2";
+	char nomeArquivoSaida[] = "out";
+	int threadLinha = 0; //supõe que uma thread fica responsável pela linha 0 da matriz resultante
+	
+	LerMetadadosMatriz(&nomeArquivoMatrizA,&metadadosA);
+	LerMetadadosMatriz(&nomeArquivoMatrizB,&metadadosB);
+	
+	//Cria as matrizes dinâmicas
+	int matrizA[metadadosA[0]][metadadosA[1]];
+	int matrizB[metadadosB[0]][metadadosB[1]];
+	int matrizResultante[metadadosA[0]][metadadosB[1]];
 
-		}
-		else
-		{
-			printf("Erro ao tentar ler matrizes");
-		}	
-	}
-	else
-	{
-		printf("Erro ao tentar ler os metadados");
-	}
+	LerMatrizes(&nomeArquivoMatrizA,metadadosA[0],metadadosA[1],matrizA);
+	LerMatrizes(&nomeArquivoMatrizB,metadadosB[0],metadadosB[1],matrizB);
+	
+	inicializaMatriz(metadadosA[0],metadadosB[1],matrizResultante); //seta todos os elementos da matriz em 0
+	computaLinha(&metadadosA,&metadadosB,matrizA,matrizB,&matrizResultante[threadLinha],threadLinha);
+	ImprimeMatriz(&nomeArquivoSaida,metadadosA[0],metadadosB[1],matrizResultante);
+
 	return 0;
 }
