@@ -4,21 +4,23 @@
 /* InicializaFila: Inicializa a fila atribuindo o estado inicial de cada filósofo
 	Parâmetros:
 		filosofos = array de filosofos
+                       qtd = quantidade de filosofos
 	Retorno:
 		1 = Operação com sucesso
 		0 = Operação com erros
 */
-int InicializaFila(char *filosofos);
+int InicializaFila(char *filosofos, int qtd);
 
 /*
 	ImprimeEstados: Imprime o estado de cada filósofo
 	Parâmetros:
 		filosofos = array de filosofos
+                       qtd = quantidade de filosofos
 	Retorno:
 		1 = Operação com sucesso
 		0 = Operação com erros
 */
-int ImprimeEstados(char *filosofo);
+int ImprimeEstados(char *filosofo, int qtd);
 
 /*
 	TrocaEstado: Troca o estado de um filósofo
