@@ -33,6 +33,7 @@ int criaProcessos(int qtdProcessos, int* matrizA, int* matrizB, int* metadados)
 	}
 	exit(1);
 	*/
+    return 0;
 }
 
 int main()

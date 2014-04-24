@@ -4,8 +4,8 @@
 
 int LerMetadadosMatriz(char* nomeArquivo, int* bufferMetadados){
 	FILE *fp;
-	int numLin;
-	int numCol;
+	int numLin = 0;
+	int numCol = 0;
 
 	fp = fopen(nomeArquivo,"r");
 	if(fp == NULL) {
@@ -16,12 +16,12 @@ int LerMetadadosMatriz(char* nomeArquivo, int* bufferMetadados){
 	//Lê o número de linhas da matriz
 	fseek(fp, MAX_LINHA-2, SEEK_SET);
 	fscanf(fp,"%d", &numLin);
-	
+
 	//Lê o número de colunas da matriz
 	fseek(fp, MAX_LINHA, SEEK_CUR);
 	fscanf(fp,"%d", &numCol);
 
-	if(numLin == NULL || numCol == NULL){
+	if(numLin == 0 || numCol == 0){
 		fclose(fp);
 		return 0;
 	}
@@ -46,8 +46,8 @@ int LerMatrizes(char* nomeArquivo, int linhas, int colunas, int matriz[linhas][c
    	}
 
    	//Incrementa o ponteiro do arquivo em 2 linhas
-   	fgets(&c,20,fp);
-   	fgets(&c,20,fp);
+   	fgets(c,20,fp);
+   	fgets(c,20,fp);
 
    	for(i=0;i<linhas;i++)
    		for(j=0;j<colunas;j++)
@@ -67,20 +67,20 @@ int ImprimeMatriz(char* nomeArquivo, int nLinhas, int nColunas, int matriz[nLinh
     	perror("Error opening file");
     	return(0);
    	}
-	
+
    	fprintf(fp, "LINHAS = %d\nCOLUNAS = %d\n", nLinhas, nColunas);
-	
+
 	for(i=0;i<nLinhas;i++){
    		for(j=0;j<nColunas;j++){
  	   		if(j!=0)
- 	   			fprintf(fp," ");		
+ 	   			fprintf(fp," ");
  	   		fprintf(fp,"%d", matriz[i][j]);
    		}
 		fprintf(fp,"\n");
  	}
-	
- 	fclose(fp);   	
+
+ 	fclose(fp);
 }
-	
+
 
 
