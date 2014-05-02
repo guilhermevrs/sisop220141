@@ -1,0 +1,9 @@
+Ambiente de teste:
+
+Intel Core 2 Duo 2 Núcleos 4 GB/ Ubuntu 12.10 - 64 bits/ gcc 4.7.2
+
+Houve ganho de desempenho somente quando tivemos matrizes de tamanhos grandes (1000X1000).
+Em matrizes muito pequenas não houve desempenho quando aumentamos a concorrência do algoritmo, pelo contrário, tivemos desempenho um pouco pior ou muito semalhante, o que pode ter ocorrido devido ao overhead de criação de processos/threads.
+
+Houve diferenças nas execuções com 2, 4 e 8 processos/threads quando tivemos matrizes grandes, possivelmente porque o sistema operacional pode tirar proveito dos múltiplos núcleos do processador utilizado no teste. A diferença mais significativa foi entre a execuçao entre 1 processo/thread e 2 processos/threads.
+

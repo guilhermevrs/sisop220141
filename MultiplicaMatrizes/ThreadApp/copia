@@ -1,0 +1,36 @@
+int divideLinhas(int** linhasThreads, int linhasMatriz, int numThreads){
+	int qtdLinhas;
+	int linhasRest;
+	qtdLinhas = linhasMatriz / numThreads;
+	linhasRest = linhasMatriz % numThreads;
+	int linhasAux = 0;
+	int i=0,j;
+	
+	if(numThreads<linhasMatriz)
+		while(i<numThreads){
+			int* intervaloLinhas = malloc(2*sizeof(int));
+			intervaloLinhas[0] = linhasAux;
+			if(i<numThreads-1){
+				intervaloLinhas[1] = linhasAux+qtdLinhas-1;
+				linhasAux = linhasAux+qtdLinhas;
+			}
+			else
+			{
+				intervaloLinhas[1] = linhasAux+qtdLinhas+linhasRest-1;
+			}
+			linhasThreads[i] = intervaloLinhas;
+			i++;
+		}
+	else
+		while(linhasAux<=linhasMatriz){
+			int* intervaloLinhas = malloc(2*sizeof(int));
+			intervaloLinhas[0] = linhasAux;
+			intervaloLinhas[1] = linhasAux+qtdLinhas-1;
+			linhasAux = linhasAux+qtdLinhas;
+			linhasThreads[i] = intervaloLinhas;
+			i++;
+		}
+
+
+	return 1;
+}

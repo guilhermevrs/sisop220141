@@ -28,7 +28,7 @@ int LerMetadadosMatriz(char* nomeArquivo, int* bufferMetadados){
 
 	bufferMetadados[0] = numLin;
 	bufferMetadados[1] = numCol;
-
+	
 	fclose(fp);
 
 	return 1;

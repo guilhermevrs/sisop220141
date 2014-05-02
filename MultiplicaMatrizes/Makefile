@@ -6,7 +6,7 @@ ProcessApp: fileHandler.o matrizHandler.o ProcessApp/processApp.c
 	gcc -o bin/ProcessApp ProcessApp/processApp.c common/fileHandler.o common/matrizHandler.o
 
 ThreadApp: fileHandler.o matrizHandler.o ThreadApp/threadApp.c
-	gcc -o bin/ThreadApp ThreadApp/threadApp.c common/fileHandler.o common/matrizHandler.o
+	gcc -o bin/ThreadApp ThreadApp/threadApp.c common/fileHandler.o common/matrizHandler.o -lpthread
 
 fileHandler.o: common/fileHandler.c
 	gcc -o common/fileHandler.o -c common/fileHandler.c
