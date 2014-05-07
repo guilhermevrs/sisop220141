@@ -1,7 +1,6 @@
-
-main: tableHandler.o
-	echo 'hue maschii'
-tableHandler.o: common/tableHandler.c
-	gcc -c common/tableHandler.c
+all: filocond
+	gcc -o filosema -pthread filosema.c
+filocond: filocond.c
+	gcc -o filocond -pthread filocond.c
 clean:
-	rm *.o
+	rm filocond filosema

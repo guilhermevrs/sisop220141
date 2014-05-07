@@ -1,0 +1,14 @@
+Integrantes:
+
+Guilherme Schwade - 192332
+Gabriel Maschke - 205982
+
+Intel Core i7 Ivy Brigde 4 Núcleos 4 GB/ Ubuntu 12.10/ gcc 4.7.2
+
+filosema.c - Jantar dos Filósofos com semáforos
+
+Nessa implementação, foi utilizado um semáforo para agir como mutex. Esse semáforo barra a entrada, na mesa, para busca de garfos, limitando a 1 o número permitido. Caso os garfos estejam disponíveis, ou seja, caso os vizinhos não estão comendo, o filósofo em questão fica comendo (por tempo aleatório) e libera para outro filósofo entrar e tentar pegar os garfos. Caso um filósofo consiga chegar na mesa e não tem garfos disponíveis, ele libera o mutex e volta ao loop.
+
+filocond.c - Jantar dos filósofos com variáveis de condição
+
+Nessa implementação com variáveis de condição, criamos um teste que bloqueia um filósofo caso não tenha garfos disponíveis (ou seja, caso pelo menos um de seus vizinhos esteja comendo). Quando um filósofo libera o mutex para os outros tentarem sentar, ele sinaliza todos os que estão bloqueados na variável.
