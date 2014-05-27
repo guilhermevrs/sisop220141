@@ -2,6 +2,9 @@
 
 //set of socket descriptors
 fd_set readfds;
+Room rooms[MAX_ROOMS];
+int max_clients = 0;
+pthread_mutex_t m = PTHREAD_MUTEX_INITIALIZER;
 
 int sendDataObject(int type, int id, char message[], char* nickname, int socket){
     Data dt;
@@ -94,18 +97,18 @@ void roomMessageReceived(char buffer[], int sender, User clients[], int maxClien
     }
 }
 
-void joinRoom(char *buffer, User *usr, Room *rooms){
+void joinRoom(char *buffer, User *usr){
     int i, exists;
     char *tok;
     tok = strtok(buffer, " ");
     tok = strtok(NULL, " ");
     if(tok != NULL){
         exists = 0;
-        for(i = 0; i< MAX_ROOMS; i++, rooms++){
-            if(rooms->active){
-                if(strcmp(rooms->name, tok) == 0){
+        for(i = 0; i< MAX_ROOMS; i++){
+            if(rooms[i].active){
+                if(strcmp(rooms[i].name, tok) == 0){
                     exists = 1;
-                    usr->room = rooms;
+                    usr->room = &(rooms[i]);
                     break;
                 }
             }
@@ -122,7 +125,7 @@ void joinRoom(char *buffer, User *usr, Room *rooms){
     }
 }
 
-void createRoom(char *buffer, User *usr, Room *rooms){
+void createRoom(char *buffer, User *usr){
     int i, alreadyExists;
     char *tok;
     Room *emptyRoom = NULL;
@@ -131,10 +134,10 @@ void createRoom(char *buffer, User *usr, Room *rooms){
     if(tok != NULL){
         alreadyExists = 0;
 
-        for(i = 0; i< MAX_ROOMS; i++, rooms++){
-            if(emptyRoom == NULL && !rooms->active)
-                emptyRoom = rooms;
-            if(strcmp(rooms->name, tok) == 0){
+        for(i = 0; i< MAX_ROOMS; i++){
+            if(emptyRoom == NULL && !rooms[i].active)
+                emptyRoom = &(rooms[i]);
+            if(strcmp(rooms[i].name, tok) == 0){
                 alreadyExists = 1;
                 sendDataObject(TYPE_ERROR, 0, "Erro ao utilizar o comando \\create. Nome de sala ja existe", NULL, usr->socket);
                 break;
@@ -158,6 +161,57 @@ void createRoom(char *buffer, User *usr, Room *rooms){
     }
 }
 
+void treatRequest(void *argParam){
+
+    int valread;
+    unsigned char buffer[2048];
+
+    Params arg = *(Params*)argParam;
+
+    //Check if is closing
+    if ((valread = read( arg.user->socket , buffer, 1024)) == 0)
+    {
+        printf("Host disconnected");
+        //Close the socket and mark as 0 in list for reuse
+        close( arg.user->socket );
+        arg.user->socket = 0;
+    }
+    else
+    {
+        //set the string terminating NULL byte on the end of the data read
+        buffer[valread-1] = '\0';
+        printf("Received from client %i: %s", arg.i, buffer);
+
+        switch(checkType(buffer)){
+            case IS_MESSAGE:
+                if(arg.user->room == NULL)
+                    multicastReceived(buffer, arg.i, arg.connectedUsers, max_clients);
+                else
+                    roomMessageReceived(buffer, arg.i, arg.connectedUsers, max_clients);
+            break;
+            case IS_CHANGENICK:
+                changeNick(buffer, arg.user);
+            break;
+            case IS_CREATEROOM:
+                pthread_mutex_lock(&m);
+                createRoom(buffer, arg.user);
+                pthread_mutex_unlock(&m);
+            break;
+            case IS_JOINROOM:
+                joinRoom(buffer, arg.user);
+            break;
+            case IS_LEAVEROOM:
+                arg.user->room = NULL;
+                sendDataObject(TYPE_CONFIRM, 0, CONFIRM_MESSAGE, NULL, arg.user->socket);
+            break;
+            default:
+            break;
+        }
+
+    }
+    pthread_exit(NULL);
+}
+
 int main(int argc , char *argv[])
 {
     int opt = TRUE;
@@ -165,7 +219,6 @@ int main(int argc , char *argv[])
     int max_sd;
     struct sockaddr_in address;
     User tmpUser;
-    Room rooms[MAX_ROOMS];
 
     unsigned char buffer[2048];  //data buffer of 1K
 
@@ -175,8 +228,10 @@ int main(int argc , char *argv[])
         exit(EXIT_FAILURE);
     }
 
-    int max_clients = atoi(argv[1]);
+    max_clients = atoi(argv[1]);
     User connectedUsers[max_clients];
+    Params params[max_clients];
+    pthread_t requestThreads[max_clients];
 
     //initialise all sockets to 0 so not checked
     for (i = 0; i < max_clients; i++){
@@ -294,54 +349,15 @@ int main(int argc , char *argv[])
         //else its some IO operation on some other socket :)
         for (i = 0; i < max_clients; i++)
         {
-            if (FD_ISSET( connectedUsers[i].socket , &readfds))
-            {
-                //Check if it was for closing , and also read the incoming message
-                if ((valread = read( connectedUsers[i].socket , buffer, 1024)) == 0)
-                {
-                    //Somebody disconnected , get his details and print
-                    getpeername(connectedUsers[i].socket , (struct sockaddr*)&address , (socklen_t*)&addrlen);
-                    printf("Host disconnected , ip %s , port %d \n" , inet_ntoa(address.sin_addr) , ntohs(address.sin_port));
-
-                    FD_CLR(connectedUsers[i].socket, &readfds);
-
-                    //Close the socket and mark as 0 in list for reuse
-                    close( connectedUsers[i].socket );
-                    connectedUsers[i].socket = 0;
-                }
-                else
-                {
-                    //set the string terminating NULL byte on the end of the data read
-                    buffer[valread-1] = '\0';
-                    printf("Received from client %i: %s", i, buffer);
-
-                    switch(checkType(buffer)){
-                        case IS_MESSAGE:
-                            if(connectedUsers[i].room == NULL)
-                                multicastReceived(buffer, i, connectedUsers, max_clients);
-                            else
-                                roomMessageReceived(buffer, i, connectedUsers, max_clients);
-                        break;
-                        case IS_CHANGENICK:
-                            changeNick(buffer, &(connectedUsers[i]));
-                        break;
-                        case IS_CREATEROOM:
-                            createRoom(buffer, &(connectedUsers[i]), rooms);
-                        break;
-                        case IS_JOINROOM:
-                            joinRoom(buffer, &(connectedUsers[i]), rooms);
-                        break;
-                        case IS_LEAVEROOM:
-                            connectedUsers[i].room = NULL;
-                            sendDataObject(TYPE_CONFIRM, 0, CONFIRM_MESSAGE, NULL, connectedUsers[i].socket);
-                        break;
-                        default:
-                        break;
-                    }
-
-                }
+            if (FD_ISSET( connectedUsers[i].socket , &readfds)){
+                params[i].user = &(connectedUsers[i]);
+                params[i].i = i;
+                params[i].connectedUsers = connectedUsers;
+                pthread_create(&requestThreads[i], NULL, treatRequest, &(params[i]));
             }
         }
+        for (i = 0; i<max_clients; i++)
+            pthread_join(requestThreads[i], NULL);
     }
 
     return 0;

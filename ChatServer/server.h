@@ -12,6 +12,7 @@ SERVER
 #include <netinet/in.h>
 #include <sys/time.h> //FD_SET, FD_ISSET, FD_ZERO macros
 #include "definitions.h"
+#include <pthread.h>
 
 #define MAX_ROOMS 10
 
@@ -25,3 +26,9 @@ typedef struct Users_struct{
     int socket;
     Room *room;
 } User;
+
+typedef struct Params_struct{
+    User * user;
+    int i;
+    User *connectedUsers;
+} Params;
