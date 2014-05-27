@@ -1,12 +1,18 @@
 #include "server.h"
 
-int sendDataObject(int type, int id, char message[], int socket){
+int sendDataObject(int type, int id, char message[], char* nickname, int socket){
     Data dt;
     unsigned char buffer[2048];
 
     dt.type = type;
     dt.id = id;
     strcpy(dt.message, message);
+
+    if(nickname == NULL)
+        dt.nickname[0] = '\0';
+    else
+        strcpy(dt.nickname, nickname);
+
     memcpy(&buffer, &dt, sizeof(dt));
     if( send(socket, buffer, sizeof(buffer), 0) != sizeof(buffer) )
     {
@@ -14,14 +20,43 @@ int sendDataObject(int type, int id, char message[], int socket){
     }
 }
 
-int multicastReceived(char buffer[], int sender, int clients[], int maxClients){
-    int i, sd;
+int checkType(char* buffer){
+    int isCommand = IS_MESSAGE;
+    char copyBuffer[BUFSIZE];
+    char * tok;
+
+    strcpy(copyBuffer, buffer);
+
+    tok = strtok(copyBuffer, " ");
+    if(strcmp(tok , CMD_CHANGE_NICK) == 0 || strcmp(tok , CMD_CHANGE_NICK_END) == 0){
+        isCommand = IS_CHANGENICK;
+    }
+    return isCommand;
+}
+
+void changeNick(char* buffer, User *usr){
+    char *tok;
+    tok = strtok(buffer, " ");
+    tok = strtok(NULL, " ");
+    if(tok != NULL){
+        strcpy(usr->nickname, tok);
+        usr->nickname[40] = '\0';
+        sendDataObject(TYPE_CONFIRM, 0, CONFIRM_MESSAGE, NULL, usr->socket);
+    }
+    else{
+        sendDataObject(TYPE_ERROR, 0, "Erro ao utilizar o comando \\nick. Usage: \\nick new_nick", NULL, usr->socket);
+    }
+}
+
+int multicastReceived(char buffer[], int sender, User clients[], int maxClients){
+    int i;
+    User usr;
     Data dt;
     for (i = 0; i < maxClients; ++i)
     {
         if(sender != i){
-            sd = clients[i];
-            sendDataObject(TYPE_MESSAGE, sender, buffer, sd);
+            usr = clients[i];
+            sendDataObject(TYPE_MESSAGE, sender, buffer, clients[sender].nickname, usr.socket);
         }
     }
 }
@@ -32,7 +67,7 @@ int main(int argc , char *argv[])
     int master_socket , addrlen , new_socket , activity, i , valread , sd;
     int max_sd;
     struct sockaddr_in address;
-    Data dt;
+    User tmpUser;
 
     unsigned char buffer[2048];  //data buffer of 1K
 
@@ -43,16 +78,14 @@ int main(int argc , char *argv[])
     }
 
     int max_clients = atoi(argv[1]);
-    int client_socket[max_clients];
+    User connectedUsers[max_clients];
 
     //set of socket descriptors
     fd_set readfds;
 
-    //initialise all client_socket[] to 0 so not checked
+    //initialise all sockets to 0 so not checked
     for (i = 0; i < max_clients; i++)
-    {
-        client_socket[i] = 0;
-    }
+        connectedUsers[i].socket = 0;
 
     //create a master socket
     if( (master_socket = socket(AF_INET , SOCK_STREAM , 0)) == 0)
@@ -104,8 +137,9 @@ int main(int argc , char *argv[])
         //add child sockets to set
         for ( i = 0 ; i < max_clients ; i++)
         {
+            tmpUser = connectedUsers[i];
             //socket descriptor
-            sd = client_socket[i];
+            sd = tmpUser.socket;
 
             //if valid socket descriptor then add to read list
             if(sd > 0)
@@ -140,17 +174,18 @@ int main(int argc , char *argv[])
             for (i = 0; i < max_clients; i++)
             {
                 //if position is empty
-                if( client_socket[i] == 0 )
+                if( connectedUsers[i].socket == 0 )
                 {
-                    client_socket[i] = new_socket;
+                    sprintf(connectedUsers[i].nickname, "Client%d", i);
+                    connectedUsers[i].socket = new_socket;
                     printf("Adding to list of sockets as %d\n" , i);
 
-                    sendDataObject(TYPE_GREETING, i, WELCOME_MESSAGE, new_socket);
+                    sendDataObject(TYPE_GREETING, i, WELCOME_MESSAGE, NULL, new_socket);
 
                     break;
                 }
                 else if(i == max_clients - 1){
-                    sendDataObject(TYPE_GREETING, -1, REJECT_MESSAGE, new_socket);
+                    sendDataObject(TYPE_GREETING, -1, REJECT_MESSAGE, NULL, new_socket);
                 }
             }
         }
@@ -158,28 +193,35 @@ int main(int argc , char *argv[])
         //else its some IO operation on some other socket :)
         for (i = 0; i < max_clients; i++)
         {
-            sd = client_socket[i];
-
-            if (FD_ISSET( sd , &readfds))
+            if (FD_ISSET( connectedUsers[i].socket , &readfds))
             {
                 //Check if it was for closing , and also read the incoming message
-                if ((valread = read( sd , buffer, 1024)) == 0)
+                if ((valread = read( connectedUsers[i].socket , buffer, 1024)) == 0)
                 {
                     //Somebody disconnected , get his details and print
-                    getpeername(sd , (struct sockaddr*)&address , (socklen_t*)&addrlen);
+                    getpeername(connectedUsers[i].socket , (struct sockaddr*)&address , (socklen_t*)&addrlen);
                     printf("Host disconnected , ip %s , port %d \n" , inet_ntoa(address.sin_addr) , ntohs(address.sin_port));
 
                     //Close the socket and mark as 0 in list for reuse
-                    close( sd );
-                    client_socket[i] = 0;
+                    close( connectedUsers[i].socket );
+                    connectedUsers[i].socket = 0;
                 }
                 else
                 {
                     //set the string terminating NULL byte on the end of the data read
-                    buffer[valread] = '\0';
+                    buffer[valread-1] = '\0';
                     printf("Received from client %i: %s", i, buffer);
 
-                    multicastReceived(buffer, i, client_socket, max_clients);
+                    switch(checkType(buffer)){
+                        case IS_MESSAGE:
+                            multicastReceived(buffer, i, connectedUsers, max_clients);
+                        break;
+                        case IS_CHANGENICK:
+                            changeNick(buffer, &(connectedUsers[i]));
+                        break;
+                        default:
+                        break;
+                    }
 
                 }
             }

@@ -12,3 +12,8 @@ SERVER
 #include <netinet/in.h>
 #include <sys/time.h> //FD_SET, FD_ISSET, FD_ZERO macros
 #include "definitions.h"
+
+typedef struct Users_struct{
+    char nickname[41];
+    int socket;
+} User;

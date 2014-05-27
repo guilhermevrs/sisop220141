@@ -1,7 +1,12 @@
 #include "client.h"
 
+void fixBarraN(char* str){
+    int stringLen;
+    stringLen = strlen(str);
+    str[stringLen] = '\0';
+}
+
 void HandleMessage(Data msg){
-    int sizeMessage;
     switch(msg.type){
         case TYPE_GREETING:
             if(msg.id < 0){
@@ -9,15 +14,19 @@ void HandleMessage(Data msg){
             }
         break;
         case TYPE_MESSAGE:
-            printf("\rClient %i: ", msg.id);
+            fixBarraN(msg.nickname);
+            printf("%s: ", msg.nickname);
+        break;
+        case TYPE_CONFIRM:
+        case TYPE_ERROR:
+            printf("===SERVER=== ");
+        break;
+        default:
         break;
     }
-    sizeMessage = strlen(msg.message);
-    msg.message[sizeMessage - 1] = '\0';
-    if(sizeMessage >= 1 && *(msg.message) != '\0'){
-        printf("%s\n", msg.message);
-    }
-    fflush(stdout);
+
+    fixBarraN(msg.message);
+    printf("%s\n", msg.message);
 }
 
 
@@ -28,16 +37,21 @@ Data send_recv(int i, int sockfd)
     int nbyte_recvd;
     Data a;
 
+    a.message[0] = '\0';
+
     if (i == 0){
         fgets(send_buf, BUFSIZE, stdin);
-        if (strcmp(send_buf , "quit\n") == 0) {
+        if (strcmp(send_buf , CMD_QUIT) == 0 || strcmp(send_buf , CMD_QUIT_END) == 0) {
             exit(0);
         }else
             send(sockfd, send_buf, strlen(send_buf), 0);
     }else {
-        read (sockfd, &a, sizeof(a));
+        nbyte_recvd = read (sockfd, &a, sizeof(a));
 
-        HandleMessage(a);
+        if(nbyte_recvd > 1016)
+            HandleMessage(a);
+
+        fflush(stdout);
     }
     return a;
 }
