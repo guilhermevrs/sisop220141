@@ -1,5 +1,8 @@
 #include "server.h"
 
+//set of socket descriptors
+fd_set readfds;
+
 int sendDataObject(int type, int id, char message[], char* nickname, int socket){
     Data dt;
     unsigned char buffer[2048];
@@ -14,9 +17,11 @@ int sendDataObject(int type, int id, char message[], char* nickname, int socket)
         strcpy(dt.nickname, nickname);
 
     memcpy(&buffer, &dt, sizeof(dt));
-    if( send(socket, buffer, sizeof(buffer), 0) != sizeof(buffer) )
-    {
-        perror("send DataObject");
+    if(socket != 0){
+        if( send(socket, buffer, sizeof(buffer), 0) != sizeof(buffer) )
+        {
+            perror("send DataObject");
+        }
     }
 }
 
@@ -30,6 +35,15 @@ int checkType(char* buffer){
     tok = strtok(copyBuffer, " ");
     if(strcmp(tok , CMD_CHANGE_NICK) == 0 || strcmp(tok , CMD_CHANGE_NICK_END) == 0){
         isCommand = IS_CHANGENICK;
+    }
+    else if(strcmp(tok , CMD_CREATE_ROOM) == 0 || strcmp(tok , CMD_CREATE_ROOM_END) == 0){
+        isCommand = IS_CREATEROOM;
+    }
+    else if(strcmp(tok , CMD_JOIN_ROOM) == 0 || strcmp(tok , CMD_JOIN_ROOM_END) == 0){
+        isCommand = IS_JOINROOM;
+    }
+    else if(strcmp(tok , CMD_LEAVE_ROOM) == 0 || strcmp(tok , CMD_LEAVE_ROOM) == 0){
+        isCommand = IS_LEAVEROOM;
     }
     return isCommand;
 }
@@ -48,7 +62,7 @@ void changeNick(char* buffer, User *usr){
     }
 }
 
-int multicastReceived(char buffer[], int sender, User clients[], int maxClients){
+void multicastReceived(char buffer[], int sender, User clients[], int maxClients){
     int i;
     User usr;
     Data dt;
@@ -56,8 +70,91 @@ int multicastReceived(char buffer[], int sender, User clients[], int maxClients)
     {
         if(sender != i){
             usr = clients[i];
-            sendDataObject(TYPE_MESSAGE, sender, buffer, clients[sender].nickname, usr.socket);
+            if(usr.room == NULL)
+                sendDataObject(TYPE_MESSAGE, sender, buffer, clients[sender].nickname, usr.socket);
         }
+    }
+}
+
+void roomMessageReceived(char buffer[], int sender, User clients[], int maxClients){
+    int i;
+    User usr;
+    Room *rm;
+    Data dt;
+
+    rm = clients[sender].room;
+
+    for (i = 0; i < maxClients; ++i)
+    {
+        if(sender != i){
+            usr = clients[i];
+            if(usr.room == rm)
+                sendDataObject(TYPE_MESSAGE, sender, buffer, clients[sender].nickname, usr.socket);
+        }
+    }
+}
+
+void joinRoom(char *buffer, User *usr, Room *rooms){
+    int i, exists;
+    char *tok;
+    tok = strtok(buffer, " ");
+    tok = strtok(NULL, " ");
+    if(tok != NULL){
+        exists = 0;
+        for(i = 0; i< MAX_ROOMS; i++, rooms++){
+            if(rooms->active){
+                if(strcmp(rooms->name, tok) == 0){
+                    exists = 1;
+                    usr->room = rooms;
+                    break;
+                }
+            }
+        }
+        if(exists){
+                sendDataObject(TYPE_CONFIRM, 0, CONFIRM_MESSAGE, NULL, usr->socket);
+        }
+        else{
+            sendDataObject(TYPE_ERROR, 0, "Erro ao utilizar o comando \\join. Room nao existe", NULL, usr->socket);
+        }
+    }
+    else{
+        sendDataObject(TYPE_ERROR, 0, "Erro ao utilizar o comando \\join. Usage: \\join room_name", NULL, usr->socket);
+    }
+}
+
+void createRoom(char *buffer, User *usr, Room *rooms){
+    int i, alreadyExists;
+    char *tok;
+    Room *emptyRoom = NULL;
+    tok = strtok(buffer, " ");
+    tok = strtok(NULL, " ");
+    if(tok != NULL){
+        alreadyExists = 0;
+
+        for(i = 0; i< MAX_ROOMS; i++, rooms++){
+            if(emptyRoom == NULL && !rooms->active)
+                emptyRoom = rooms;
+            if(strcmp(rooms->name, tok) == 0){
+                alreadyExists = 1;
+                sendDataObject(TYPE_ERROR, 0, "Erro ao utilizar o comando \\create. Nome de sala ja existe", NULL, usr->socket);
+                break;
+            }
+        }
+
+        if(!alreadyExists){
+            if(emptyRoom != NULL){
+                emptyRoom->active = 1;
+                strcpy(emptyRoom->name, tok);
+                usr->room = emptyRoom;
+                sendDataObject(TYPE_CONFIRM, 0, CONFIRM_MESSAGE, NULL, usr->socket);
+            }
+            else{
+                sendDataObject(TYPE_ERROR, 0, "Erro ao utilizar o comando \\create. Nao cabem mais salas", NULL, usr->socket);
+            }
+        }
+    }
+    else{
+        sendDataObject(TYPE_ERROR, 0, "Erro ao utilizar o comando \\create. Usage: \\create room_name", NULL, usr->socket);
     }
 }
 
@@ -68,6 +165,7 @@ int main(int argc , char *argv[])
     int max_sd;
     struct sockaddr_in address;
     User tmpUser;
+    Room rooms[MAX_ROOMS];
 
     unsigned char buffer[2048];  //data buffer of 1K
 
@@ -80,12 +178,15 @@ int main(int argc , char *argv[])
     int max_clients = atoi(argv[1]);
     User connectedUsers[max_clients];
 
-    //set of socket descriptors
-    fd_set readfds;
-
     //initialise all sockets to 0 so not checked
-    for (i = 0; i < max_clients; i++)
+    for (i = 0; i < max_clients; i++){
         connectedUsers[i].socket = 0;
+        connectedUsers[i].room = NULL;
+    }
+
+    //clear all rooms
+    for (i=0; i < MAX_ROOMS; i++)
+        rooms[i].active = 0;
 
     //create a master socket
     if( (master_socket = socket(AF_INET , SOCK_STREAM , 0)) == 0)
@@ -202,6 +303,8 @@ int main(int argc , char *argv[])
                     getpeername(connectedUsers[i].socket , (struct sockaddr*)&address , (socklen_t*)&addrlen);
                     printf("Host disconnected , ip %s , port %d \n" , inet_ntoa(address.sin_addr) , ntohs(address.sin_port));
 
+                    FD_CLR(connectedUsers[i].socket, &readfds);
+
                     //Close the socket and mark as 0 in list for reuse
                     close( connectedUsers[i].socket );
                     connectedUsers[i].socket = 0;
@@ -214,10 +317,23 @@ int main(int argc , char *argv[])
 
                     switch(checkType(buffer)){
                         case IS_MESSAGE:
-                            multicastReceived(buffer, i, connectedUsers, max_clients);
+                            if(connectedUsers[i].room == NULL)
+                                multicastReceived(buffer, i, connectedUsers, max_clients);
+                            else
+                                roomMessageReceived(buffer, i, connectedUsers, max_clients);
                         break;
                         case IS_CHANGENICK:
                             changeNick(buffer, &(connectedUsers[i]));
+                        break;
+                        case IS_CREATEROOM:
+                            createRoom(buffer, &(connectedUsers[i]), rooms);
+                        break;
+                        case IS_JOINROOM:
+                            joinRoom(buffer, &(connectedUsers[i]), rooms);
+                        break;
+                        case IS_LEAVEROOM:
+                            connectedUsers[i].room = NULL;
+                            sendDataObject(TYPE_CONFIRM, 0, CONFIRM_MESSAGE, NULL, connectedUsers[i].socket);
                         break;
                         default:
                         break;

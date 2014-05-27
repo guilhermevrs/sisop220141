@@ -15,11 +15,21 @@
 
 #define IS_MESSAGE 0
 #define IS_CHANGENICK 1
+#define IS_CREATEROOM 2
+#define IS_JOINROOM 3
+#define IS_LEAVEROOM 4
 
 #define CMD_QUIT "\\quit"
 #define CMD_QUIT_END "\\quit\n"
 #define CMD_CHANGE_NICK "\\nick"
 #define CMD_CHANGE_NICK_END "\\nick\n"
+#define CMD_CREATE_ROOM "\\create"
+#define CMD_CREATE_ROOM_END "\\create\n"
+#define CMD_JOIN_ROOM "\\join"
+#define CMD_JOIN_ROOM_END "\\join\n"
+#define CMD_LEAVE_ROOM "\\leave"
+#define CMD_LEAVE_ROOM_END "\\leave\n"
+
 
 typedef struct Data_str
 {
