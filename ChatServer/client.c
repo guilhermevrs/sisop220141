@@ -1,5 +1,7 @@
 #include "client.h"
 
+char serverPort[40];
+
 void fixBarraN(char* str){
     int stringLen;
     stringLen = strlen(str);
@@ -65,7 +67,7 @@ void connect_request(int *sockfd, struct sockaddr_in *server_addr)
     }
     server_addr->sin_family = AF_INET;
     server_addr->sin_port = htons(PORT);
-    server_addr->sin_addr.s_addr = inet_addr("127.0.0.1");
+    server_addr->sin_addr.s_addr = inet_addr(serverPort);
     memset(server_addr->sin_zero, '\0', sizeof server_addr->sin_zero);
 
     if(connect(*sockfd, (struct sockaddr *)server_addr, sizeof(struct sockaddr)) == -1) {
@@ -74,13 +76,20 @@ void connect_request(int *sockfd, struct sockaddr_in *server_addr)
     }
 }
 
-int main()
+int main(int argc , char *argv[])
 {
     int sockfd, fdmax, i;
     struct sockaddr_in server_addr;
     fd_set master;
     fd_set read_fds;
     Data msg;
+
+    if(argc < 2){
+        printf("ERROR! Usage: ./client server_ip");
+        exit(1);
+    }
+
+    strcpy(serverPort, argv[1]);
 
     connect_request(&sockfd, &server_addr);
     FD_ZERO(&master);

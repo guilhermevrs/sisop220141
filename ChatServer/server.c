@@ -214,7 +214,7 @@ void treatRequest(void *argParam){
 
 int main(int argc , char *argv[])
 {
-    int opt = TRUE;
+    int opt = TRUE, numThreads;
     int master_socket , addrlen , new_socket , activity, i , valread , sd;
     int max_sd;
     struct sockaddr_in address;
@@ -347,16 +347,18 @@ int main(int argc , char *argv[])
         }
 
         //else its some IO operation on some other socket :)
+        numThreads = 0;
         for (i = 0; i < max_clients; i++)
         {
             if (FD_ISSET( connectedUsers[i].socket , &readfds)){
                 params[i].user = &(connectedUsers[i]);
                 params[i].i = i;
                 params[i].connectedUsers = connectedUsers;
-                pthread_create(&requestThreads[i], NULL, treatRequest, &(params[i]));
+                pthread_create(&(requestThreads[numThreads]), NULL, treatRequest, &(params[i]));
+                numThreads++;
             }
         }
-        for (i = 0; i<max_clients; i++)
+        for (i = 0; i<numThreads; i++)
             pthread_join(requestThreads[i], NULL);
     }
 
