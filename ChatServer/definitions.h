@@ -8,6 +8,7 @@
 #define REJECT_MESSAGE "Desculpa, mas estamos lotados"
 
 #define TYPE_GREETING 0
+#define TYPE_MESSAGE 1
 
 typedef struct Data_str
 {

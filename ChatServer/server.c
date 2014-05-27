@@ -1,5 +1,31 @@
 #include "server.h"
 
+int sendDataObject(int type, int id, char message[], int socket){
+    Data dt;
+    unsigned char buffer[2048];
+
+    dt.type = type;
+    dt.id = id;
+    strcpy(dt.message, message);
+    memcpy(&buffer, &dt, sizeof(dt));
+    if( send(socket, buffer, sizeof(buffer), 0) != sizeof(buffer) )
+    {
+        perror("send DataObject");
+    }
+}
+
+int multicastReceived(char buffer[], int sender, int clients[], int maxClients){
+    int i, sd;
+    Data dt;
+    for (i = 0; i < maxClients; ++i)
+    {
+        if(sender != i){
+            sd = clients[i];
+            sendDataObject(TYPE_MESSAGE, sender, buffer, sd);
+        }
+    }
+}
+
 int main(int argc , char *argv[])
 {
     int opt = TRUE;
@@ -119,26 +145,12 @@ int main(int argc , char *argv[])
                     client_socket[i] = new_socket;
                     printf("Adding to list of sockets as %d\n" , i);
 
-                    dt.type = TYPE_GREETING;
-                    dt.id = i;
-                    strcpy(dt.message, WELCOME_MESSAGE);
-                    memcpy(&buffer, &dt, sizeof(dt));
-                    if( send(new_socket, buffer, sizeof(buffer), 0) != sizeof(buffer) )
-                    {
-                        perror("send welcome");
-                    }
+                    sendDataObject(TYPE_GREETING, i, WELCOME_MESSAGE, new_socket);
 
                     break;
                 }
                 else if(i == max_clients - 1){
-                    dt.type = TYPE_GREETING;
-                    dt.id = -1;
-                    strcpy(dt.message, REJECT_MESSAGE);
-                    memcpy(&buffer, &dt, sizeof(dt));
-                    if( send(new_socket, buffer, sizeof(buffer), 0) != sizeof(buffer) )
-                    {
-                        perror("send reject");
-                    }
+                    sendDataObject(TYPE_GREETING, -1, REJECT_MESSAGE, new_socket);
                 }
             }
         }
@@ -161,14 +173,14 @@ int main(int argc , char *argv[])
                     close( sd );
                     client_socket[i] = 0;
                 }
-
-                //Echo back the message that came in
                 else
                 {
                     //set the string terminating NULL byte on the end of the data read
                     buffer[valread] = '\0';
                     printf("Received from client %i: %s", i, buffer);
-                    send(sd , buffer , strlen(buffer) , 0 );
+
+                    multicastReceived(buffer, i, client_socket, max_clients);
+
                 }
             }
         }

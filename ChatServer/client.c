@@ -1,13 +1,23 @@
 #include "client.h"
 
 void HandleMessage(Data msg){
+    int sizeMessage;
     switch(msg.type){
         case TYPE_GREETING:
             if(msg.id < 0){
                 exit(0);
             }
         break;
+        case TYPE_MESSAGE:
+            printf("\rClient %i: ", msg.id);
+        break;
     }
+    sizeMessage = strlen(msg.message);
+    msg.message[sizeMessage - 1] = '\0';
+    if(sizeMessage >= 1 && *(msg.message) != '\0'){
+        printf("%s\n", msg.message);
+    }
+    fflush(stdout);
 }
 
 
@@ -26,14 +36,8 @@ Data send_recv(int i, int sockfd)
             send(sockfd, send_buf, strlen(send_buf), 0);
     }else {
         read (sockfd, &a, sizeof(a));
-        printf("%s\n", a.message);
 
         HandleMessage(a);
-
-        //nbyte_recvd = recv(sockfd, recv_buf, BUFSIZE, 0);
-        //recv_buf[nbyte_recvd] = '\0';
-        //printf("%s\n" , recv_buf);
-        fflush(stdout);
     }
     return a;
 }
